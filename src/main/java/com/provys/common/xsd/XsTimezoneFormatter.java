@@ -55,8 +55,8 @@ class XsTimezoneFormatter {
      * Formatter representing timezone
      */
     static final DateTimeFormatter LENIENT = new DateTimeFormatterBuilder()
-            .parseCaseSensitive()
-            .appendOffset("+H:mm", "Z")
+            .parseCaseInsensitive()
+            .appendOffset("+H:mm:ss", "Z")
             .toFormatter();
 
     /**

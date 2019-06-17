@@ -1,5 +1,6 @@
 package com.provys.common.xsd;
 
+import javax.annotation.Nonnull;
 import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -52,7 +53,14 @@ public final class XsDateTimeFormatter {
             .toFormatter(Locale.ENGLISH)
             .withChronology(IsoChronology.INSTANCE);
 
-     /**
+    public static final String LENIENT_REGEX = XsDateFormatter.LENIENT_DATE_REGEX + "[ Tt]" +
+            XsTimeFormatter.LENIENT_TIME_REGEX + XsTimezoneFormatter.LENIENT_REGEX + '?';
+    /**
+     * Pattern that corresponds to strings, accepted by XSD_DATETIME_PARSER
+     */
+    public static final Pattern LENIENT_PATTERN = Pattern.compile(LENIENT_REGEX);
+
+    /**
      * Defines acceptable values for delimiter between date and time
      */
     private static final Map<Long, String> DATE_TIME_DELIMETER_MAP = new HashMap<>(2);
@@ -83,7 +91,6 @@ public final class XsDateTimeFormatter {
      * </ul>
      */
     public static final DateTimeFormatter LENIENT = new DateTimeFormatterBuilder()
-            .parseCaseInsensitive()
             .append(XsDateFormatter.LENIENT_DATE)
             .appendText(NoValueField.DATE_TIME_DELIMITER, DATE_TIME_DELIMETER_MAP)
             .append(XsTimeFormatter.LENIENT_TIME)
@@ -93,31 +100,23 @@ public final class XsDateTimeFormatter {
             .toFormatter(Locale.ENGLISH)
             .withChronology(IsoChronology.INSTANCE);
 
-    public static final String LENIENT_REGEX = XsDateFormatter.LENIENT_DATE_REGEX + "[ Tt]" +
-            XsTimeFormatter.LENIENT_TIME_REGEX + XsTimezoneFormatter.LENIENT_REGEX + '?';
-    /**
-     * Pattern that corresponds to strings, accepted by XSD_DATETIME_PARSER
-     */
-    public static final Pattern LENIENT_PATTERN = Pattern.compile(LENIENT_REGEX);
-
-    private static final Map<String, DateTimeFormatter> XSD_DATETIME_PARSER_TZ = new ConcurrentHashMap<>(1);
+    private static final Map<String, DateTimeFormatter> LENIENT_TZ_MAP = new ConcurrentHashMap<>(1);
 
     /**
      * Returns lenient parser that interprets missing timezone information as specified timezone
      */
-    public static DateTimeFormatter getFormatterTZ(String defOffset) {
+    @Nonnull
+    public static DateTimeFormatter getLenientTZ(String defOffset) {
         Objects.requireNonNull(defOffset);
-        return XSD_DATETIME_PARSER_TZ.computeIfAbsent(defOffset,
+        return LENIENT_TZ_MAP.computeIfAbsent(defOffset,
                 defaultOffset -> new DateTimeFormatterBuilder()
-                        .parseCaseInsensitive()
-                        .append(ISO_LOCAL_DATE)
+                        .append(XsDateFormatter.LENIENT_DATE)
                         .appendText(NoValueField.DATE_TIME_DELIMITER, DATE_TIME_DELIMETER_MAP)
-                        .append(ISO_LOCAL_TIME)
+                        .append(XsTimeFormatter.LENIENT_TIME)
                         .optionalStart()
                         .append(XsTimezoneFormatter.getLenient(defaultOffset))
                         .optionalEnd()
-                        .toFormatter(Locale.US)
-                        .withResolverStyle(ResolverStyle.STRICT)
+                        .toFormatter(Locale.ENGLISH)
                         .withChronology(IsoChronology.INSTANCE));
     }
 }

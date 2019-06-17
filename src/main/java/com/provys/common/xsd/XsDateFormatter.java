@@ -1,12 +1,14 @@
 package com.provys.common.xsd;
 
 import javax.annotation.Nonnull;
+import java.time.LocalDate;
 import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.ResolverStyle;
 import java.time.format.SignStyle;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
@@ -66,16 +68,27 @@ public final class XsDateFormatter {
             .withChronology(IsoChronology.INSTANCE);
 
     /**
+     * Convert supplied xs:date string to {@code LocalDate} using strict validation
+     *
+     * @param xsDate is string value strictly compliant with xs:date format. Timezone is completely ignored
+     * @return date corresponding to supplied value
+     */
+    @Nonnull
+    public static LocalDate parse(String xsDate) {
+        return LocalDate.from(STRICT.parse(Objects.requireNonNull(xsDate)));
+    }
+
+    /**
      * String defining date part of format, accepted by STRICT formatter
      */
-    static final String LENIENT_DATE_REGEX = "-?([1-9][0-9]{3,}|0[0-9]{3}|[0-9]{2})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])";
+    static final String LENIENT_DATE_REGEX = "-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])";
 
     /**
      * Formatter parsing date part, lenient
      */
     @Nonnull
     static final DateTimeFormatter LENIENT_DATE = new DateTimeFormatterBuilder()
-            .appendValue(YEAR, 2, 10, SignStyle.EXCEEDS_PAD)
+            .appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
             .appendLiteral('-')
             .appendValue(MONTH_OF_YEAR, 2)
             .appendLiteral('-')
@@ -105,4 +118,14 @@ public final class XsDateFormatter {
             .withResolverStyle(ResolverStyle.STRICT)
             .withChronology(IsoChronology.INSTANCE);
 
+    /**
+     * Convert supplied xs:date string to {@code LocalDate} using lenient validation
+     *
+     * @param xsDate is string value roughly compliant with xs:date format. Timezone is completely ignored
+     * @return date corresponding to supplied value
+     */
+    @Nonnull
+    public static LocalDate parseLenient(String xsDate) {
+        return LocalDate.from(LENIENT.parse(Objects.requireNonNull(xsDate)));
+    }
 }
